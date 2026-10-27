@@ -1,0 +1,7 @@
+---
+import Entry from '../views/Entry.astro';
+import { entryPaths } from '../lib/routes';
+export const getStaticPaths = entryPaths;
+const { page, post } = Astro.props;
+---
+<Entry lang="en" page={page} post={post} />

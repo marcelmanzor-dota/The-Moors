@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import { t } from '../i18n/ui';
+---
+<Base lang="en" path="/404/" title={t('en', 'notfound.title')} noindex>
+  <div class="wrap section" style="display:grid;gap:18px;max-width:760px">
+    <span class="eyebrow">404</span>
+    <h1>{t('en', 'notfound.title')}</h1>
+    <span class="rule" role="presentation"></span>
+    <p>{t('en', 'notfound.text')}</p>
+    <p lang="es"><strong>{t('es', 'notfound.title')}.</strong> {t('es', 'notfound.text')}</p>
+    <form action="/search/" method="get" class="form-row">
+      <div class="field"><label for="q">{t('en', 'search')} / {t('es', 'search')}</label><input class="input" id="q" name="q" type="search" /></div>
+      <button class="btn btn--crimson" type="submit">{t('en', 'search')}</button>
+    </form>
+    <p><a href="/">{t('en', 'home')}</a> · <a href="/es/">{t('es', 'home')}</a></p>
+  </div>
+</Base>

@@ -1,0 +1,23 @@
+---
+import { categoryLabel } from '../data/site';
+import { formatDate, localize, type Lang } from '../i18n/ui';
+import type { Post } from '../lib/content';
+
+interface Props { post: Post; lang: Lang; headingLevel?: 2 | 3 }
+const { post, lang, headingLevel = 2 } = Astro.props;
+const H = `h${headingLevel}` as 'h2' | 'h3';
+const cat = post.categories[0];
+---
+<article class="card">
+  {post.image
+    ? <div class="card__media"><img src={post.image} alt="" loading="lazy" /></div>
+    : <div class="card__media card__media--plain" aria-hidden="true"><span>{cat ? categoryLabel(cat)[lang] : 'The Moors'}</span></div>}
+  <div class="card__body">
+    <div class="card__meta">
+      {cat && <span class="card__cat">{categoryLabel(cat)[lang]}</span>}
+      <time datetime={post.date}>{formatDate(post.date, lang)}</time>
+    </div>
+    <H><a href={localize(post.path, lang)}>{post.title[lang]}</a></H>
+    {post.excerpt[lang] && <p>{post.excerpt[lang]}</p>}
+  </div>
+</article>

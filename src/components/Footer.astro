@@ -1,0 +1,54 @@
+---
+import { mainNav } from '../data/nav';
+import { t, localize, type Lang } from '../i18n/ui';
+import type { Settings } from '../data/site';
+
+interface Props { lang: Lang; settings: Settings }
+const { lang, settings } = Astro.props;
+const { office, security, logo } = settings;
+const year = new Date().getFullYear();
+const quick = [
+  mainNav[1].items[1], // Documents
+  mainNav[2].items[1], // Moors ID
+  mainNav[4].items[1], // Vehicle barcodes
+  mainNav[4].items[2], // SmartPlus
+  mainNav[3].items[1], // Club Center
+  mainNav[5].items[0], // Calendar
+];
+---
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__brand">
+      <img src={logo.webp1x} width={logo.width} height={logo.height} alt="The Moors" loading="lazy" />
+      <p>{settings.name}</p>
+    </div>
+    <div>
+      <h2>{t(lang, 'office')}</h2>
+      <ul>
+        <li><a href={office.mapUrl} rel="noopener" target="_blank">{office.address}</a></li>
+        <li><a href={`tel:${office.phone.replace(/\D/g, '')}`}>{office.phone}</a></li>
+        {office.email && <li><a href={`mailto:${office.email}`}>{office.email}</a></li>}
+        {office.hours[lang].map((h) => <li>{h}</li>)}
+      </ul>
+    </div>
+    <div>
+      <h2>{t(lang, 'security')}</h2>
+      <ul>
+        <li>{t(lang, 'emergency')}</li>
+        <li>{security.name}: <a href={`tel:${security.phone.replace(/\D/g, '')}`}>{security.phone}</a></li>
+        <li>{t(lang, 'police.nonemergency')}: <a href={`tel:${settings.policeNonEmergency.replace(/\D/g, '')}`}>{settings.policeNonEmergency}</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>{t(lang, 'footer.quick')}</h2>
+      <ul>
+        {quick.map((l) => <li><a href={localize(l.path, lang)}>{l.label[lang]}</a></li>)}
+        <li><a href={settings.paymentsUrl} rel="noopener">{t(lang, 'payments')}</a></li>
+      </ul>
+    </div>
+    <div class="footer__base">
+      <span>© {year} {t(lang, 'footer.rights')}</span>
+      <a href="/studio/">{t(lang, 'footer.editors')}</a>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,27 @@
+---
+import Interior from '../layouts/Interior.astro';
+import { getPage, getSettings } from '../lib/content';
+import { t, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const page = await getPage('/subscribe/');
+const s = await getSettings();
+---
+<Interior lang={lang} path="/subscribe/" title={page?.title[lang] ?? t(lang, 'subscribe')} summary={page?.summary[lang] ?? t(lang, 'subscribe.lede')}>
+  {page && <div class="prose" set:html={page.body.html[lang]} />}
+  {s.subscribeAction ? (
+    <form class="form-row" method="post" action={s.subscribeAction} style="margin-top:28px;max-width:640px">
+      <div class="field">
+        <label for="sub-email">{t(lang, 'subscribe.email')}</label>
+        <input class="input" id="sub-email" name="email" type="email" autocomplete="email" required />
+      </div>
+      <input type="hidden" name="language" value={lang} />
+      <button class="btn btn--crimson" type="submit">{t(lang, 'subscribe.button')}</button>
+    </form>
+  ) : (
+    <p class="callout callout--gold" style="margin-top:28px;max-width:640px">
+      {t(lang, 'subscribe.fallback')} <a href={`tel:${s.office.phone.replace(/\D/g, '')}`}>{s.office.phone}</a>
+    </p>
+  )}
+</Interior>

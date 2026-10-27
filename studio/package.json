@@ -1,0 +1,20 @@
+{
+  "name": "the-moors-studio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Editing dashboard for themoors.com (Sanity Studio).",
+  "type": "module",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "dependencies": {
+    "@sanity/icons": "^5.2.3",
+    "@sanity/vision": "^6.20.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sanity": "^6.20.0",
+    "styled-components": "^6.6.0"
+  }
+}

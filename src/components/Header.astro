@@ -1,0 +1,97 @@
+---
+import Icon from './Icon.astro';
+import { mainNav, utilityNav } from '../data/nav';
+import { t, localize, type Lang } from '../i18n/ui';
+import type { Settings } from '../data/site';
+
+interface Props { lang: Lang; path: string; settings: Settings }
+const { lang, path, settings } = Astro.props;
+const other: Lang = lang === 'en' ? 'es' : 'en';
+const isCurrent = (p: string) => (p === path ? 'page' : undefined);
+const inGroup = (g: (typeof mainNav)[number]) => g.path === path || g.items.some((i) => i.path === path) || (g.key === 'news' && (path.startsWith('/news/') || path.startsWith('/category/')));
+const { logo } = settings;
+---
+<a class="skip" href="#main">{t(lang, 'skip')}</a>
+
+<div class="utility">
+  <div class="wrap">
+    <span class="utility__label">{t(lang, 'links')}</span>
+    <ul class="utility__links">
+      {utilityNav.map((l) => <li><a href={localize(l.path, lang)} aria-current={isCurrent(l.path)}>{l.label[lang]}</a></li>)}
+    </ul>
+    <div class="utility__tools">
+      <a class="lang-switch" href={localize(path, other)} hreflang={other} lang={other} aria-label={t(lang, 'lang.switch.label')}>
+        <Icon name="globe" class="" />{t(lang, 'lang.switch')}
+      </a>
+      <a class="icon-btn" href={localize('/feed.xml', lang)} title={t(lang, 'rss')}><Icon name="rss" label={t(lang, 'rss')} /></a>
+      <a class="icon-btn" href={settings.youtubeUrl} rel="noopener" target="_blank" title={t(lang, 'youtube')}><Icon name="youtube" label={t(lang, 'youtube')} /></a>
+      <a class="icon-btn" href={localize('/search/', lang)} title={t(lang, 'search')}><Icon name="search" label={t(lang, 'search')} /></a>
+    </div>
+  </div>
+</div>
+
+<header class="masthead" data-masthead>
+  <div class="bar">
+    <div class="wrap">
+      <a class="brand" href={localize('/', lang)} style={`--logo-mask:url(${logo.webp1x})`} data-brand>
+        <picture>
+          <source srcset={`${logo.webp1x} 1x, ${logo.webp} 2x`} type="image/webp" />
+          <img src={logo.png} width={logo.width} height={logo.height} alt="The Moors" />
+        </picture>
+      </a>
+
+      <nav class="nav" aria-label={lang === 'en' ? 'Main' : 'Principal'}>
+        <ul class="nav__list">
+          {mainNav.map((g) => g.items.length ? (
+            <li class="nav__item" data-dropdown>
+              <button class="nav__link" type="button" aria-expanded="false" aria-controls={`drop-${g.key}`} aria-current={inGroup(g) ? 'true' : undefined}>
+                {g.label[lang]} <Icon name="chevron" class="nav__chev" />
+              </button>
+              <div class="drop" id={`drop-${g.key}`}>
+                <ul>
+                  {g.items.map((i) => (
+                    <li><a href={localize(i.path, lang)} aria-current={isCurrent(i.path)}>{i.label[lang]}{i.desc && <small>{i.desc[lang]}</small>}</a></li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ) : (
+            <li class="nav__item"><a class="nav__link" href={localize(g.path, lang)} aria-current={inGroup(g) ? 'page' : undefined}>{g.label[lang]}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <a class="btn btn--gold bar__pay" href={settings.paymentsUrl} rel="noopener"><Icon name="mail" />{t(lang, 'payments')}</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" data-drawer-open>
+        <Icon name="menu" /><span>{t(lang, 'menu')}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" data-drawer aria-hidden="true">
+  <button class="drawer__scrim" type="button" tabindex="-1" aria-label={t(lang, 'close')} data-drawer-close></button>
+  <div class="drawer__panel" role="dialog" aria-modal="true" aria-label={t(lang, 'menu')}>
+    <div class="drawer__top">
+      <a class="lang-switch" href={localize(path, other)} hreflang={other} lang={other} style="color:var(--ink);text-decoration:none">
+        <Icon name="globe" />{t(lang, 'lang.switch')}
+      </a>
+      <button class="drawer__close" type="button" data-drawer-close><Icon name="close" label={t(lang, 'close')} /></button>
+    </div>
+    {mainNav.map((g) => g.items.length ? (
+      <details open={inGroup(g) || undefined}>
+        <summary>{g.label[lang]} <Icon name="chevron" /></summary>
+        <ul>{g.items.map((i) => <li><a href={localize(i.path, lang)} aria-current={isCurrent(i.path)}>{i.label[lang]}</a></li>)}</ul>
+      </details>
+    ) : (
+      <a class="drawer__single" href={localize(g.path, lang)}>{g.label[lang]}</a>
+    ))}
+    <div class="drawer__actions">
+      <a class="btn btn--gold" href={settings.paymentsUrl} rel="noopener"><Icon name="mail" />{t(lang, 'payments')}</a>
+      <a class="btn btn--pearl" href={localize('/search/', lang)}><Icon name="search" />{t(lang, 'search')}</a>
+    </div>
+    <div class="drawer__utility">
+      {utilityNav.map((l) => <a href={localize(l.path, lang)}>{l.label[lang]}</a>)}
+    </div>
+  </div>
+</div>

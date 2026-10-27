@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PostCard from '../components/PostCard.astro';
+import EventItem from '../components/EventItem.astro';
+import { getPosts, getEventGroups, getSettings } from '../lib/content';
+import { quickTasks } from '../data/site';
+import { t, localize, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const settings = await getSettings();
+const posts = (await getPosts()).slice(0, 3);
+const { upcoming, recurring } = await getEventGroups();
+const events = [...upcoming.slice(0, 4), ...recurring].slice(0, 4);
+const { office, security, hero } = settings;
+---
+<Base lang={lang} path="/" title={lang === 'en' ? 'The Moors Master Maintenance Association' : 'The Moors Master Maintenance Association'}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class:list={['hero__media', !hero.image && 'hero__media--fallback']}>
+      {hero.image && <img src={hero.image} alt="" fetchpriority="high" />}
+      {hero.video && <video data-hero-video data-src={hero.video} muted loop playsinline preload="none" poster={hero.image} aria-hidden="true"></video>}
+    </div>
+    <div class="wrap hero__inner">
+      <span class="eyebrow" style="color:var(--gold-300)">The Moors Master Maintenance Association</span>
+      <h1 id="hero-title">{t(lang, 'home.welcome')} <em>The Moors</em></h1>
+      <p class="hero__lede">{t(lang, 'home.lede')}</p>
+      <h2 class="visually-hidden">{t(lang, 'home.tasks')}</h2>
+      <div class="tasks" data-reveal>
+        {quickTasks.map((q) => (
+          <a class="task" href={q.path === 'payments' ? settings.paymentsUrl : localize(q.path, lang)} rel={q.external ? 'noopener' : undefined}>
+            <span class="task__icon"><Icon name={q.icon} /></span>
+            <b>{q.title[lang]}</b>
+            <span>{q.text[lang]}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="news-title">
+    <div class="wrap">
+      <div class="section__head">
+        <div>
+          <span class="eyebrow">{t(lang, 'news')}</span>
+          <h2 id="news-title">{t(lang, 'home.news')}</h2>
+          <span class="rule" data-draw role="presentation"></span>
+        </div>
+        <a class="more" href={localize('/news/', lang)}>{t(lang, 'home.news.all')} <Icon name="arrow" /></a>
+      </div>
+      <div class="cards">
+        {posts.map((p) => <PostCard post={p} lang={lang} headingLevel={3} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="events-title">
+    <div class="wrap">
+      <div class="section__head">
+        <div>
+          <span class="eyebrow">{t(lang, 'events')}</span>
+          <h2 id="events-title">{t(lang, 'home.events')}</h2>
+          <span class="rule" data-draw role="presentation"></span>
+        </div>
+        <a class="more" href={localize('/events/', lang)}>{t(lang, 'home.events.all')} <Icon name="arrow" /></a>
+      </div>
+      {events.length ? (
+        <ul class="events">{events.map((e) => <EventItem event={e} lang={lang} />)}</ul>
+      ) : <p>{t(lang, 'home.events.none')}</p>}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="club-title">
+    <div class="wrap split">
+      <div class="split__text">
+        <span class="eyebrow">{lang === 'en' ? 'Amenities' : 'Amenidades'}</span>
+        <h2 id="club-title">{t(lang, 'home.club')}</h2>
+        <span class="rule" data-draw role="presentation"></span>
+        <p>{t(lang, 'home.club.text')}</p>
+        <div><a class="btn btn--crimson" href={localize('/services/the-moors-club-center/', lang)}>{t(lang, 'home.club.cta')}</a></div>
+      </div>
+      {settings.hero.image
+        ? <div class="frame"><img src={settings.hero.image} alt={hero.alt[lang]} loading="lazy" /></div>
+        : <div class="frame frame--placeholder" role="img" aria-label={hero.alt[lang]}></div>}
+    </div>
+  </section>
+
+  <section class="band" aria-label={t(lang, 'office')}>
+    <div class="wrap">
+      <div class="band__item">
+        <Icon name="clock" />
+        <h3>{t(lang, 'office.hours')}</h3>
+        <ul>{office.hours[lang].map((h) => <li>{h}</li>)}</ul>
+      </div>
+      <div class="band__item">
+        <Icon name="phone" />
+        <h3>{t(lang, 'office')}</h3>
+        <a class="phone" href={`tel:${office.phone.replace(/\D/g, '')}`}>{office.phone}</a>
+        <p><a href={office.mapUrl} rel="noopener" target="_blank">{office.address}</a></p>
+      </div>
+      <div class="band__item">
+        <Icon name="shield" />
+        <h3>{t(lang, 'security')}</h3>
+        <a class="phone" href={`tel:${security.phone.replace(/\D/g, '')}`}>{security.phone}</a>
+        <p>{t(lang, 'emergency')}</p>
+      </div>
+    </div>
+  </section>
+</Base>

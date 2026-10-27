@@ -1,0 +1,39 @@
+---
+import Interior from '../layouts/Interior.astro';
+import Icon from '../components/Icon.astro';
+import { formatDate, localize, t, type Lang } from '../i18n/ui';
+import { calendarDates } from '../lib/ics';
+import type { Event } from '../lib/content';
+
+interface Props { lang: Lang; event: Event }
+const { lang, event: e } = Astro.props;
+const hasTime = !!e.start && e.start.length > 10;
+const when = e.start
+  ? hasTime
+    ? formatDate(e.start, lang, { dateStyle: 'full', timeStyle: 'short' })
+    : formatDate(e.start, lang, { dateStyle: 'full' })
+  : e.recurrence?.[lang] ?? '';
+const gcal = e.start
+  ? `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title[lang])}&dates=${calendarDates(e)}&location=${encodeURIComponent(e.location[lang])}&details=${encodeURIComponent(e.summary[lang])}`
+  : undefined;
+---
+<Interior lang={lang} path={e.path} navPath={e.path === '/events/board-meetings/' || e.path === '/events/cac-monthly-meeting/' ? e.path : '/events/'} title={e.title[lang]} summary={e.summary[lang]} fallback={e.body.fallback[lang]}>
+  <div class="prose">
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><th scope="row"><Icon name="calendar" class="" /> {t(lang, 'events.when')}</th><td>{when}</td></tr>
+          <tr><th scope="row"><Icon name="pin" class="" /> {t(lang, 'events.where')}</th><td>{e.location[lang]}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    {gcal && (
+      <p style="display:flex;flex-wrap:wrap;gap:10px">
+        <a class="btn btn--pearl btn--sm" href={gcal} rel="noopener" target="_blank"><Icon name="calendar" />Google Calendar</a>
+        <a class="btn btn--pearl btn--sm" href={`/events/${e.slug}.ics`}><Icon name="calendar" />{t(lang, 'events.add')} (.ics)</a>
+      </p>
+    )}
+  </div>
+  <div class="prose" set:html={e.body.html[lang]} style="margin-top:28px" />
+  <p style="margin-top:40px"><a class="more" href={localize('/events/', lang)}>← {t(lang, 'events.back')}</a></p>
+</Interior>

@@ -1,0 +1,28 @@
+---
+import Interior from '../layouts/Interior.astro';
+import EventItem from '../components/EventItem.astro';
+import { getEventGroups, getPage } from '../lib/content';
+import { t, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { upcoming, recurring, past } = await getEventGroups();
+const intro = await getPage('/events/');
+---
+<Interior lang={lang} path="/events/" title={intro?.title[lang] ?? t(lang, 'events')} summary={intro?.summary[lang] ?? t(lang, 'events.lede')}>
+  {intro && <div class="prose" set:html={intro.body.html[lang]} style="margin-bottom:32px" />}
+  <h2 style="font-size:var(--step-3);margin-bottom:16px">{t(lang, 'events.upcoming')}</h2>
+  {upcoming.length
+    ? <ul class="events">{upcoming.map((e) => <EventItem event={e} lang={lang} />)}</ul>
+    : <p>{t(lang, 'home.events.none')}</p>}
+
+  {recurring.length > 0 && <>
+    <h2 style="font-size:var(--step-3);margin:48px 0 16px">{t(lang, 'events.recurring')}</h2>
+    <ul class="events">{recurring.map((e) => <EventItem event={e} lang={lang} />)}</ul>
+  </>}
+
+  {past.length > 0 && <>
+    <h2 style="font-size:var(--step-3);margin:48px 0 16px">{t(lang, 'events.past')}</h2>
+    <ul class="events" style="opacity:.85">{past.slice(0, 12).map((e) => <EventItem event={e} lang={lang} />)}</ul>
+  </>}
+</Interior>

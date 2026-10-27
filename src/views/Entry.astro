@@ -1,0 +1,33 @@
+---
+/* A content page or a news post, looked up by path. */
+import Interior from '../layouts/Interior.astro';
+import Icon from '../components/Icon.astro';
+import DocList from '../components/DocList.astro';
+import ContactCard from '../components/ContactCard.astro';
+import { categoryLabel } from '../data/site';
+import { formatDate, localize, t, type Lang } from '../i18n/ui';
+import type { Page, Post } from '../lib/content';
+
+interface Props { lang: Lang; page?: Page; post?: Post }
+const { lang, page, post } = Astro.props;
+---
+{page && (
+  <Interior lang={lang} path={page.path} title={page.title[lang]} summary={page.summary[lang]} fallback={page.body.fallback[lang]} updated={page.updated}>
+    <div class="prose" set:html={page.body.html[lang]} />
+    {page.path === '/for-residents/documents/' && <DocList lang={lang} />}
+    {page.path === '/about-the-moors/contact/' && <ContactCard lang={lang} />}
+  </Interior>
+)}
+{post && (
+  <Interior lang={lang} path={post.path} navPath="/news/" title={post.title[lang]} summary={post.excerpt[lang]} fallback={post.body.fallback[lang]} image={post.image}>
+    <div class="post-meta" style="margin-bottom:24px">
+      <time datetime={post.date}><Icon name="calendar" class="" /> {formatDate(post.date, lang)}</time>
+      {post.categories.length > 0 && (
+        <span>{t(lang, 'news.filed')}: {post.categories.map((c, i) => <>{i > 0 && ', '}<a href={localize(`/category/${c}/`, lang)}>{categoryLabel(c)[lang]}</a></>)}</span>
+      )}
+    </div>
+    {post.image && <div class="post-hero"><img src={post.image} alt="" /></div>}
+    <article class="prose" set:html={post.body.html[lang]} />
+    <p style="margin-top:40px"><a class="more" href={localize('/news/', lang)}>← {t(lang, 'news.back')}</a></p>
+  </Interior>
+)}

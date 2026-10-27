@@ -1,0 +1,28 @@
+---
+import Icon from './Icon.astro';
+import { getSettings } from '../lib/content';
+import { t, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = await getSettings();
+const digits = (n: string) => n.replace(/\D/g, '');
+---
+<div class="prose" style="margin-top:32px">
+  <div class="emergency">
+    <strong>{t(lang, 'emergency')}</strong>
+    <span>{s.security.name}: <a href={`tel:${digits(s.security.phone)}`}>{s.security.phone}</a></span>
+    <span>{t(lang, 'police.nonemergency')}: <a href={`tel:${digits(s.policeNonEmergency)}`}>{s.policeNonEmergency}</a></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><th scope="row"><Icon name="pin" class="" /> {t(lang, 'address')}</th><td><a href={s.office.mapUrl} rel="noopener" target="_blank">{s.office.address}</a></td></tr>
+        <tr><th scope="row">{t(lang, 'phone')}</th><td><a href={`tel:${digits(s.office.phone)}`}>{s.office.phone}</a></td></tr>
+        {s.office.email && <tr><th scope="row">{t(lang, 'email')}</th><td><a href={`mailto:${s.office.email}`}>{s.office.email}</a></td></tr>}
+        <tr><th scope="row">Club Center</th><td><a href={`mailto:${s.clubCenterEmail}`}>{s.clubCenterEmail}</a></td></tr>
+        <tr><th scope="row">{t(lang, 'office.hours')}</th><td>{s.office.hours[lang].map((h) => <div>{h}</div>)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

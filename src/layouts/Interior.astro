@@ -1,0 +1,74 @@
+---
+import Base from './Base.astro';
+import Icon from '../components/Icon.astro';
+import { groupForPath, mainNav } from '../data/nav';
+import { getSettings } from '../lib/content';
+import { t, localize, formatDate, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  path: string;
+  title: string;
+  summary?: string;
+  /** Path used to pick the side navigation, when it differs from the page path. */
+  navPath?: string;
+  /** Spanish page showing English text because no translation exists yet. */
+  fallback?: boolean;
+  updated?: string;
+  image?: string;
+  /** Hide the side column (for wide listings). */
+  wide?: boolean;
+}
+const { lang, path, title, summary, navPath, fallback, updated, image, wide } = Astro.props;
+const settings = await getSettings();
+const group = groupForPath(navPath ?? path) ?? (path.startsWith('/category/') || path.startsWith('/news/') ? mainNav.find((g) => g.key === 'news') : undefined);
+const crumbs: { label: string; path?: string }[] = [{ label: t(lang, 'home'), path: '/' }];
+if (group && group.path !== path) crumbs.push({ label: group.label[lang], path: group.path });
+crumbs.push({ label: title });
+const { office, security } = settings;
+---
+<Base lang={lang} path={path} title={title} description={summary} image={image}>
+  <div class="page-head">
+    <div class="wrap">
+      <nav aria-label={lang === 'en' ? 'Breadcrumb' : 'Ruta'}>
+        <ol class="crumbs">
+          {crumbs.map((c) => <li>{c.path ? <a href={localize(c.path, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>)}
+        </ol>
+      </nav>
+      <h1>{title}</h1>
+      <span class="rule" role="presentation"></span>
+      {summary && <p>{summary}</p>}
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout" style={wide ? 'grid-template-columns:1fr' : undefined}>
+      <div>
+        {fallback && (
+          <p class="translation-note" lang="es"><Icon name="info" />Esta página todavía no tiene traducción. Mostramos el texto en inglés mientras tanto.</p>
+        )}
+        <slot />
+        {updated && <p class="post-meta" style="margin-top:40px">{t(lang, 'updated')}: {formatDate(updated, lang)}</p>}
+      </div>
+      {!wide && (
+        <aside class="aside">
+          {group && group.items.length > 0 && (
+            <nav class="panel" aria-label={t(lang, 'in.section')}>
+              <h2>{group.label[lang]}</h2>
+              <ul class="subnav">
+                {group.items.map((i) => <li><a href={localize(i.path, lang)} aria-current={i.path === (navPath ?? path) ? 'page' : undefined}>{i.label[lang]}</a></li>)}
+              </ul>
+            </nav>
+          )}
+          <div class="panel help">
+            <h2>{t(lang, 'need.help')}</h2>
+            <p>{t(lang, 'need.help.text')}</p>
+            <a class="phone" href={`tel:${office.phone.replace(/\D/g, '')}`}>{office.phone}</a>
+            <ul>{office.hours[lang].map((h) => <li>{h}</li>)}</ul>
+            <p style="margin-top:6px">{t(lang, 'security.247')}: <a href={`tel:${security.phone.replace(/\D/g, '')}`}>{security.phone}</a></p>
+          </div>
+        </aside>
+      )}
+    </div>
+  </div>
+</Base>

@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+import { formatDate, localize, type Lang } from '../i18n/ui';
+import type { Event } from '../lib/content';
+
+interface Props { event: Event; lang: Lang }
+const { event: e, lang } = Astro.props;
+const hasTime = !!e.start && e.start.length > 10;
+const day = e.start ? formatDate(e.start, lang, { day: 'numeric' }) : '';
+const mon = e.start ? formatDate(e.start, lang, { month: 'short' }).replace('.', '') : '';
+const time = hasTime ? formatDate(e.start!, lang, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : e.start ? formatDate(e.start, lang, { weekday: 'long' }) : '';
+const end = (e.end ?? e.start ?? '').slice(0, 10);
+---
+<li class="event" data-event-end={end || undefined}>
+  {e.start
+    ? <span class="medal" aria-hidden="true"><b>{day}</b><span>{mon}</span></span>
+    : <span class="medal medal--recurring" aria-hidden="true"><Icon name="calendar" /></span>}
+  <div>
+    <h3><a href={localize(e.path, lang)}>{e.title[lang]}</a></h3>
+    <p>{e.recurrence ? e.recurrence[lang] : e.location[lang]}</p>
+  </div>
+  <span class="event__time">{e.start ? <time datetime={e.start}>{time}</time> : e.location[lang]}</span>
+</li>

@@ -1,0 +1,7 @@
+---
+import EventDetail from '../../views/EventDetail.astro';
+import { eventPaths } from '../../lib/routes';
+export const getStaticPaths = eventPaths;
+const { event } = Astro.props;
+---
+<EventDetail lang="en" event={event} />

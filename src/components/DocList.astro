@@ -1,0 +1,26 @@
+---
+import Icon from './Icon.astro';
+import { getDocs } from '../lib/content';
+import { t, formatDate, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const docs = await getDocs();
+---
+{docs.length > 0 && (
+  <section style="margin-top:40px">
+    <h2 style="font-size:var(--step-3);margin-bottom:16px">{t(lang, 'documents')}</h2>
+    <ul class="docs">
+      {docs.map((d) => (
+        <li class="doc">
+          <Icon name="doc" />
+          <div>
+            <b>{d.title[lang]}</b>
+            <span>{d.description[lang]}{d.updated && ` · ${t(lang, 'updated')}: ${formatDate(d.updated, lang)}`}</span>
+          </div>
+          <a class="btn btn--pearl btn--sm" href={d.url} rel="noopener" target="_blank">{t(lang, 'documents.download')}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

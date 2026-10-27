@@ -1,0 +1,38 @@
+---
+import Interior from '../layouts/Interior.astro';
+import PostCard from '../components/PostCard.astro';
+import { newsCategories, categoryLabel } from '../data/site';
+import { t, localize, type Lang } from '../i18n/ui';
+import type { Post } from '../lib/content';
+
+interface Props {
+  lang: Lang;
+  posts: Post[];
+  /** Category slug, or undefined for all news. */
+  category?: string;
+  page: number;
+  pages: number;
+}
+const { lang, posts, category, page, pages } = Astro.props;
+const base = category ? `/category/${category}/` : '/news/';
+const pagePath = (n: number) => (n === 1 ? base : `${base}page/${n}/`);
+const title = category ? categoryLabel(category)[lang] : t(lang, 'news');
+const path = pagePath(page);
+---
+<Interior lang={lang} path={path} navPath="/news/" title={page > 1 ? `${title} · ${t(lang, 'news.page')} ${page}` : title} summary={t(lang, 'news.lede')} wide>
+  <ul class="filters" aria-label={lang === 'en' ? 'Categories' : 'Categorías'}>
+    <li><a class="chip" href={localize('/news/', lang)} aria-current={!category ? 'page' : undefined}>{t(lang, 'news.all')}</a></li>
+    {newsCategories.map((c) => (
+      <li><a class="chip" href={localize(`/category/${c.slug}/`, lang)} aria-current={c.slug === category ? 'page' : undefined}>{c.label[lang]}</a></li>
+    ))}
+  </ul>
+  <div class="cards">
+    {posts.map((p) => <PostCard post={p} lang={lang} />)}
+  </div>
+  {pages > 1 && (
+    <nav class="pager" aria-label={t(lang, 'news.page')}>
+      {page > 1 ? <a class="btn btn--pearl btn--sm" href={localize(pagePath(page - 1), lang)}>← {t(lang, 'news.newer')}</a> : <span></span>}
+      {page < pages ? <a class="btn btn--pearl btn--sm" href={localize(pagePath(page + 1), lang)}>{t(lang, 'news.older')} →</a> : <span></span>}
+    </nav>
+  )}
+</Interior>

@@ -1,0 +1,25 @@
+---
+import Interior from '../layouts/Interior.astro';
+import { t, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const strings = lang === 'es'
+  ? { placeholder: t(lang, 'search.placeholder'), clear_search: 'Borrar', load_more: 'Cargar más resultados', search_label: 'Buscar en este sitio', zero_results: 'No hay resultados para [SEARCH_TERM]', many_results: '[COUNT] resultados para [SEARCH_TERM]', one_result: '[COUNT] resultado para [SEARCH_TERM]', searching: 'Buscando [SEARCH_TERM]…' }
+  : { placeholder: t(lang, 'search.placeholder') };
+---
+<Interior lang={lang} path="/search/" title={t(lang, 'search.title')} wide>
+  <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+  <div id="search" class="search-box" data-strings={JSON.stringify(strings)}></div>
+  <noscript><p>{t(lang, 'search.noscript')}</p></noscript>
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline>
+    (function () {
+      var el = document.getElementById('search');
+      if (!window.PagefindUI || !el) return;
+      new PagefindUI({ element: '#search', showSubResults: true, showImages: false, translations: JSON.parse(el.dataset.strings) });
+      var q = new URLSearchParams(location.search).get('q');
+      if (q) { var input = el.querySelector('input'); if (input) { input.value = q; input.dispatchEvent(new Event('input')); } }
+    })();
+  </script>
+</Interior>

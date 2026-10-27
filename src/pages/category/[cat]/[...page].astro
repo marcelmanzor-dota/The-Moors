@@ -1,0 +1,7 @@
+---
+import NewsList from '../../../views/NewsList.astro';
+import { categoryPaths } from '../../../lib/routes';
+export const getStaticPaths = categoryPaths;
+const { posts, page, pages, category } = Astro.props;
+---
+<NewsList lang="en" posts={posts} page={page} pages={pages} category={category} />

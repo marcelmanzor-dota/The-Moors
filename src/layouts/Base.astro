@@ -1,0 +1,69 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import { getSettings } from '../lib/content';
+import { localize, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Path without the language prefix, e.g. "/services/". */
+  path: string;
+  title: string;
+  description?: string;
+  image?: string;
+  /** Leave the page out of search results (e.g. 404). */
+  noindex?: boolean;
+}
+const { lang, path, title, description, image, noindex } = Astro.props;
+const settings = await getSettings();
+const site = Astro.site!;
+const fullTitle = path === '/' ? `${title}` : `${title} | The Moors`;
+const canonical = new URL(localize(path, lang), site).href;
+const desc = description || (lang === 'en'
+  ? 'The Moors Master Maintenance Association: resident services, rules, security, events and news for The Moors community.'
+  : 'The Moors Master Maintenance Association: servicios para residentes, reglas, seguridad, eventos y noticias de la comunidad The Moors.');
+const ogImage = new URL(image ?? '/brand/og.png', site).href;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={new URL(localize(path, 'en'), site).href} />
+    <link rel="alternate" hreflang="es" href={new URL(localize(path, 'es'), site).href} />
+    <link rel="alternate" hreflang="x-default" href={new URL(localize(path, 'en'), site).href} />
+    <link rel="alternate" type="application/rss+xml" title="The Moors" href={localize('/feed.xml', lang)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#a31f37" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Moors" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'es_US'} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body>
+    <Header lang={lang} path={path} settings={settings} />
+    {settings.alert && (
+      <div class:list={['alert', settings.alert.level === 'urgent' && 'alert--urgent']} role="status">
+        <div class="wrap">
+          <Icon name="info" />
+          <p>{settings.alert.text[lang]} {settings.alert.path && <a href={localize(settings.alert.path, lang)}>{lang === 'en' ? 'Details' : 'Detalles'}</a>}</p>
+        </div>
+      </div>
+    )}
+    <main id="main" data-pagefind-body>
+      <slot />
+    </main>
+    <Footer lang={lang} settings={settings} />
+    <script src="../scripts/site.ts"></script>
+  </body>
+</html>
