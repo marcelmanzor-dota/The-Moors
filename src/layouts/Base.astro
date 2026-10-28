@@ -1,10 +1,12 @@
 ---
 import '../styles/global.css';
+import '../styles/experience.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
 import { getSettings } from '../lib/content';
 import { localize, withBase, type Lang } from '../i18n/ui';
+import { groupForPath } from '../data/nav';
 
 interface Props {
   lang: Lang;
@@ -15,8 +17,11 @@ interface Props {
   image?: string;
   /** Leave the page out of search results (e.g. 404). */
   noindex?: boolean;
+  /** Menu section key, for page transitions. Worked out from the path when left out. */
+  section?: string;
 }
 const { lang, path, title, description, image, noindex } = Astro.props;
+const section = path === '/' ? 'home' : (Astro.props.section ?? groupForPath(path)?.key ?? 'other');
 const settings = await getSettings();
 const site = Astro.site!;
 const fullTitle = path === '/' ? `${title}` : `${title} | The Moors`;
@@ -27,7 +32,7 @@ const desc = description || (lang === 'en'
 const ogImage = new URL(withBase(image ?? '/brand/og.png'), site).href;
 ---
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} data-section={section}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -48,7 +53,33 @@ const ogImage = new URL(withBase(image ?? '/brand/og.png'), site).href;
     <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'es_US'} />
     {noindex && <meta name="robots" content="noindex" />}
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      /*
+       * Page transitions (cross-document View Transitions). The old page notes which section it
+       * was in; the new page picks the effect: a glide within a section, a photo morph to or
+       * from the home page, and the crimson curtain between sections or languages.
+       */
+      (function () {
+        var root = document.documentElement;
+        addEventListener('pageswap', function (e) {
+          if (!e.viewTransition) return;
+          try { sessionStorage.setItem('moors-vt', JSON.stringify({ s: root.dataset.section, l: root.lang })); } catch (_) {}
+        });
+        addEventListener('pagereveal', function (e) {
+          if (!e.viewTransition) return;
+          var from = null;
+          try { from = JSON.parse(sessionStorage.getItem('moors-vt') || 'null'); sessionStorage.removeItem('moors-vt'); } catch (_) {}
+          if (!from) { e.viewTransition.types.add('glide'); return; }
+          var to = root.dataset.section;
+          var type = from.l !== root.lang ? 'curtain'
+            : from.s === to ? 'glide'
+            : (from.s === 'home' || to === 'home') ? 'morph'
+            : 'curtain';
+          e.viewTransition.types.add(type);
+        });
+      })();
+    </script>
   </head>
   <body>
     <Header lang={lang} path={path} settings={settings} />
@@ -64,6 +95,16 @@ const ogImage = new URL(withBase(image ?? '/brand/og.png'), site).href;
       <slot />
     </main>
     <Footer lang={lang} settings={settings} />
+    <a class="to-top" href="#main" aria-label={lang === 'en' ? 'Back to top' : 'Volver arriba'} data-to-top>
+      <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="to-top__track" cx="22" cy="22" r="20" /><circle class="to-top__ring" cx="22" cy="22" r="20" pathLength="1" /><path d="M15 25l7-7 7 7" /></svg>
+    </a>
+    <div class="curtain" aria-hidden="true">
+      <div class="curtain__panel">
+        <span class="curtain__rule"></span>
+        <img src={settings.logo.webp1x} width={settings.logo.width} height={settings.logo.height} alt="" />
+        <span class="curtain__rule"></span>
+      </div>
+    </div>
     <script src="../scripts/site.ts"></script>
   </body>
 </html>

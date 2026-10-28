@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import Icon from '../components/Icon.astro';
 import { groupForPath, mainNav } from '../data/nav';
+import { sections, srcset } from '../data/sections';
 import { getSettings } from '../lib/content';
 import { t, localize, formatDate, type Lang } from '../i18n/ui';
 
@@ -26,24 +27,33 @@ const crumbs: { label: string; path?: string }[] = [{ label: t(lang, 'home'), pa
 if (group && group.path !== path) crumbs.push({ label: group.label[lang], path: group.path });
 crumbs.push({ label: title });
 const { office, security } = settings;
+const sectionKey = group?.key ?? 'news';
+const banner = sections[sectionKey] ?? sections.news;
+const words = title.split(' ');
 ---
-<Base lang={lang} path={path} title={title} description={summary} image={image}>
-  <div class="page-head">
-    <div class="wrap">
+<Base lang={lang} path={path} title={title} description={summary} image={image} section={sectionKey}>
+  <header class="banner">
+    <div class="banner__media">
+      <img src={`${banner.image}-1600.webp`} srcset={srcset(banner.image)} sizes="100vw" alt="" style={`view-transition-name: banner-${banner.key}`} />
+    </div>
+    <div class="banner__shade" aria-hidden="true"></div>
+    <div class="wrap banner__inner">
       <nav aria-label={lang === 'en' ? 'Breadcrumb' : 'Ruta'}>
         <ol class="crumbs">
           {crumbs.map((c) => <li>{c.path ? <a href={localize(c.path, lang)}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>)}
         </ol>
       </nav>
-      <h1>{title}</h1>
-      <span class="rule" role="presentation"></span>
-      {summary && <p>{summary}</p>}
+      <h1 class="banner__title" aria-label={title}>
+        {words.map((w, i) => <span class="banner__word" aria-hidden="true" style={`--i:${i}`}>{w}</span>)}
+      </h1>
+      <span class="rule rule--light" role="presentation"></span>
+      {summary && <p class="banner__lede">{summary}</p>}
     </div>
-  </div>
+  </header>
 
   <div class="wrap">
     <div class="layout" style={wide ? 'grid-template-columns:1fr' : undefined}>
-      <div>
+      <div class="layout__main">
         {fallback && (
           <p class="translation-note" lang="es"><Icon name="info" />Esta página todavía no tiene traducción. Mostramos el texto en inglés mientras tanto.</p>
         )}
@@ -51,7 +61,7 @@ const { office, security } = settings;
         {updated && <p class="post-meta" style="margin-top:40px">{t(lang, 'updated')}: {formatDate(updated, lang)}</p>}
       </div>
       {!wide && (
-        <aside class="aside">
+        <aside class="aside" data-reveal>
           {group && group.items.length > 0 && (
             <nav class="panel" aria-label={t(lang, 'in.section')}>
               <h2>{group.label[lang]}</h2>

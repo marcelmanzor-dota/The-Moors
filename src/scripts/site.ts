@@ -99,8 +99,12 @@ if (brand && !reduceMotion) {
   if (!seen) brand.classList.add('glint');
 }
 
-// ---------------------------------------------------------------- reveal on scroll (task tiles, gold rules)
+// ---------------------------------------------------------------- reveal on scroll
+// Each child of a [data-reveal] block gets its place in the sequence, so they rise one after another.
 const revealables = document.querySelectorAll<HTMLElement>('[data-reveal], .rule[data-draw]');
+document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((block) => {
+  [...block.children].forEach((child, i) => (child as HTMLElement).style.setProperty('--ri', String(Math.min(i, 8))));
+});
 if (reduceMotion || !('IntersectionObserver' in window)) {
   revealables.forEach((el) => el.classList.add('is-in'));
 } else {
@@ -108,7 +112,7 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
     for (const e of entries) {
       if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
     }
-  }, { rootMargin: '0px 0px -8% 0px' });
+  }, { rootMargin: '0px 0px -10% 0px' });
   revealables.forEach((el) => io.observe(el));
 }
 
@@ -120,8 +124,70 @@ if (video) {
     video.remove();
   } else {
     video.src = video.dataset.src!;
+    // Fade the loop in over the still photo only once it is actually playing.
+    video.addEventListener('playing', () => video.classList.add('is-playing'), { once: true });
     video.play().catch(() => video.remove());
   }
+}
+
+// ---------------------------------------------------------------- gold dust drifting over the hero
+const dust = document.querySelector<HTMLCanvasElement>('[data-dust]');
+if (dust && !reduceMotion) {
+  const ctx = dust.getContext('2d')!;
+  type Mote = { x: number; y: number; r: number; vy: number; sway: number; phase: number; tw: number };
+  let motes: Mote[] = [];
+  let w = 0, h = 0, raf = 0, visible = true;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const spawn = (anywhere: boolean): Mote => ({
+    x: Math.random() * w,
+    y: anywhere ? Math.random() * h : h + 10,
+    r: 0.5 + Math.random() * 1.8,
+    vy: 0.12 + Math.random() * 0.35,
+    sway: 8 + Math.random() * 22,
+    phase: Math.random() * Math.PI * 2,
+    tw: 0.6 + Math.random() * 1.6,
+  });
+  const resize = () => {
+    w = dust.clientWidth; h = dust.clientHeight;
+    dust.width = w * dpr; dust.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    motes = Array.from({ length: Math.round(Math.min(90, w / 16)) }, () => spawn(true));
+  };
+  const frame = (t: number) => {
+    ctx.clearRect(0, 0, w, h);
+    for (const m of motes) {
+      m.y -= m.vy;
+      if (m.y < -10) Object.assign(m, spawn(false));
+      const x = m.x + Math.sin(t / 2400 + m.phase) * m.sway;
+      const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t / (600 * m.tw) + m.phase));
+      const g = ctx.createRadialGradient(x, m.y, 0, x, m.y, m.r * 4);
+      g.addColorStop(0, `rgba(255, 226, 150, ${a})`);
+      g.addColorStop(1, 'rgba(233, 180, 76, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, m.y, m.r * 4, 0, Math.PI * 2); ctx.fill();
+    }
+    raf = visible && !document.hidden ? requestAnimationFrame(frame) : 0;
+  };
+  const start = () => { if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame); };
+  resize();
+  addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', start);
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; start(); }).observe(dust);
+}
+
+// ---------------------------------------------------------------- back to top, with a gold ring showing progress
+const toTop = document.querySelector<HTMLElement>('[data-to-top]');
+if (toTop) {
+  let ticking = false;
+  const update = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const p = max > 0 ? scrollY / max : 0;
+    toTop.style.setProperty('--p', p.toFixed(3));
+    toTop.classList.toggle('is-shown', scrollY > innerHeight * 0.8);
+    ticking = false;
+  };
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
 }
 
 // ---------------------------------------------------------------- events that ended since the last build

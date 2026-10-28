@@ -10,6 +10,8 @@ export default defineConfig({
   // The old WordPress site used trailing slashes; keeping them keeps every old link working.
   trailingSlash: 'always',
   build: { format: 'directory' },
+  // Load the next page while the pointer is on a link, so page transitions start instantly.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'en', locales: { en: 'en-US', es: 'es-US' } },

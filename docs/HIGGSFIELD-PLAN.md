@@ -1,7 +1,23 @@
 # Higgsfield plan
 
 Budget agreed with the client: **up to 200 credits** (balance on Oct 27, 2026: 773).
-Nothing has been generated yet, because every item below starts from The Moors' own photos, which come in with the content import.
+
+## Generated so far: stand-ins (Oct 28, 2026, 27.5 credits)
+
+The client asked for stand-in imagery while themoors.com was unreachable. None of these show The Moors itself. Replace each with a real photo of the community when the import runs (same file names, then `node scripts/process-images.mjs`).
+
+| File | What it shows | Model | Credits |
+| --- | --- | --- | --- |
+| `public/images/hero-*.webp` | Lake at golden hour, Mediterranean townhomes, palms | gpt_image_2_5, upscaled 4K | 2.25 |
+| `public/media/hero-loop.mp4` | 10 s seamless loop of the hero (5 s clip played forward and back) | kling3_0 pro, 2 takes | 17.5 |
+| `public/images/club-*.webp` | Clubhouse with pool | gpt_image_2_5, upscaled 4K | 2.25 |
+| `public/images/sections/about-*` | Ornate gated entrance | gpt_image_2_5, upscaled 4K | 2.25 |
+| `public/images/sections/security-*` | Gatehouse at dusk | gpt_image_2_5, upscaled 4K | 2.25 |
+| `public/images/sections/residents-*`, `rules-*`, `services-*`, `events-*` | Street, clubhouse lobby, tennis courts, lawn event | gpt_image_2_5 | 1.0 |
+
+## Still planned, once the real photos are in
+
+Every item below starts from The Moors' own photos.
 
 | # | What | Where it goes | Model and settings | Credits each | Count | Total |
 | --- | --- | --- | --- | --- | --- | --- |

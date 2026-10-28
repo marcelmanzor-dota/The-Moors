@@ -1,11 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
+import Filigree from '../components/Filigree.astro';
 import PostCard from '../components/PostCard.astro';
 import EventItem from '../components/EventItem.astro';
 import { getPosts, getEventGroups, getSettings } from '../lib/content';
 import { quickTasks } from '../data/site';
-import { t, localize, type Lang } from '../i18n/ui';
+import { mainNav } from '../data/nav';
+import { sections, srcset } from '../data/sections';
+import { t, localize, withBase, type Lang } from '../i18n/ui';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -14,18 +17,50 @@ const posts = (await getPosts()).slice(0, 3);
 const { upcoming, recurring } = await getEventGroups();
 const events = [...upcoming.slice(0, 4), ...recurring].slice(0, 4);
 const { office, security, hero } = settings;
+
+/** Split text into letters for the headline rise; screen readers get the whole phrase. */
+let n = 0;
+const letters = (text: string) => text.split(' ').map((word) => ({ chars: [...word].map((c) => ({ c, i: n++ })) }));
+const line1 = letters(t(lang, 'home.welcome'));
+const line2 = letters('The Moors');
+
+const explore = ['about', 'residents', 'rules', 'services', 'security', 'events'].map((key) => {
+  const group = mainNav.find((g) => g.key === key)!;
+  return { ...sections[key], label: group.label[lang], path: group.path, count: group.items.length };
+});
+const heroIsLocal = !hero.image || hero.image.includes('/images/hero-');
 ---
-<Base lang={lang} path="/" title={lang === 'en' ? 'The Moors Master Maintenance Association' : 'The Moors Master Maintenance Association'}>
+<Base lang={lang} path="/" title="The Moors Master Maintenance Association">
   <section class="hero" aria-labelledby="hero-title">
-    <div class:list={['hero__media', !hero.image && 'hero__media--fallback']}>
-      {hero.image && <img src={hero.image} alt="" fetchpriority="high" />}
-      {hero.video && <video data-hero-video data-src={hero.video} muted loop playsinline preload="none" poster={hero.image} aria-hidden="true"></video>}
+    <div class="hero__media">
+      {heroIsLocal
+        ? <img class="hero__img" src={withBase('/images/hero-1600.webp')} srcset={`${withBase('/images/hero-960.webp')} 960w, ${withBase('/images/hero-1600.webp')} 1600w, ${withBase('/images/hero-2560.webp')} 2560w`} sizes="100vw" alt="" fetchpriority="high" />
+        : <img class="hero__img" src={hero.image} alt="" fetchpriority="high" />}
+      {hero.video && <video class="hero__video" data-hero-video data-src={hero.video} muted loop playsinline preload="none" aria-hidden="true"></video>}
     </div>
+    <canvas class="hero__dust" data-dust aria-hidden="true"></canvas>
+    <Filigree class="hero__frame" />
+
     <div class="wrap hero__inner">
-      <span class="eyebrow" style="color:var(--gold-300)">The Moors Master Maintenance Association</span>
-      <h1 id="hero-title">{t(lang, 'home.welcome')} <em>The Moors</em></h1>
+      <span class="eyebrow hero__eyebrow">The Moors Master Maintenance Association</span>
+      <h1 id="hero-title" class="hero__title" aria-label={`${t(lang, 'home.welcome')} The Moors`}>
+        <span class="hero__line" aria-hidden="true">
+          {line1.map((w) => <span class="hero__word">{w.chars.map((ch) => <span class="hero__char" style={`--i:${ch.i}`}>{ch.c}</span>)}</span>)}
+        </span>
+        <span class="hero__line hero__line--gold" aria-hidden="true">
+          {line2.map((w) => <span class="hero__word">{w.chars.map((ch) => <span class="hero__char" style={`--i:${ch.i}`}>{ch.c}</span>)}</span>)}
+        </span>
+      </h1>
       <p class="hero__lede">{t(lang, 'home.lede')}</p>
-      <h2 class="visually-hidden">{t(lang, 'home.tasks')}</h2>
+      <div class="hero__actions">
+        <a class="btn btn--gold" href={settings.paymentsUrl} rel="noopener"><Icon name="card" />{lang === 'en' ? 'Pay association fees' : 'Pagar cuotas'}</a>
+        <a class="btn btn--glass" href="#explore">{lang === 'en' ? 'Explore The Moors' : 'Conozca The Moors'}<Icon name="arrow" /></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="tasks" class="tasks-band" aria-label={t(lang, 'home.tasks')}>
+    <div class="wrap">
       <div class="tasks" data-reveal>
         {quickTasks.map((q) => (
           <a class="task" href={q.path === 'payments' ? settings.paymentsUrl : localize(q.path, lang)} rel={q.external ? 'noopener' : undefined}>
@@ -38,9 +73,34 @@ const { office, security, hero } = settings;
     </div>
   </section>
 
-  <section class="section" aria-labelledby="news-title">
+  <section id="explore" class="section explore" aria-labelledby="explore-title">
     <div class="wrap">
-      <div class="section__head">
+      <div class="section__head section__head--center" data-reveal>
+        <span class="eyebrow">{lang === 'en' ? 'Explore' : 'Explorar'}</span>
+        <h2 id="explore-title">{lang === 'en' ? 'Everything in The Moors' : 'Todo sobre The Moors'}</h2>
+        <span class="rule rule--center" data-draw role="presentation"></span>
+      </div>
+      <div class="bento" data-reveal>
+        {explore.map((s) => (
+          <a class={`tile tile--${s.key}`} href={localize(s.path, lang)}>
+            <img src={`${s.image}-960.webp`} srcset={srcset(s.image)} sizes="(max-width: 760px) 100vw, 50vw" alt="" loading="lazy" style={`view-transition-name: banner-${s.key}`} />
+            <span class="tile__shade"></span>
+            <span class="tile__frame"></span>
+            <span class="tile__body">
+              <span class="tile__count">{s.count} {lang === 'en' ? 'pages' : 'páginas'}</span>
+              <span class="tile__title">{s.label}</span>
+              <span class="tile__blurb">{s.blurb[lang]}</span>
+              <span class="tile__go"><Icon name="arrow" /></span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="news-title">
+    <div class="wrap">
+      <div class="section__head" data-reveal>
         <div>
           <span class="eyebrow">{t(lang, 'news')}</span>
           <h2 id="news-title">{t(lang, 'home.news')}</h2>
@@ -48,15 +108,15 @@ const { office, security, hero } = settings;
         </div>
         <a class="more" href={localize('/news/', lang)}>{t(lang, 'home.news.all')} <Icon name="arrow" /></a>
       </div>
-      <div class="cards">
+      <div class="cards" data-reveal>
         {posts.map((p) => <PostCard post={p} lang={lang} headingLevel={3} />)}
       </div>
     </div>
   </section>
 
-  <section class="section section--tint" aria-labelledby="events-title">
+  <section class="section" aria-labelledby="events-title">
     <div class="wrap">
-      <div class="section__head">
+      <div class="section__head" data-reveal>
         <div>
           <span class="eyebrow">{t(lang, 'events')}</span>
           <h2 id="events-title">{t(lang, 'home.events')}</h2>
@@ -65,28 +125,28 @@ const { office, security, hero } = settings;
         <a class="more" href={localize('/events/', lang)}>{t(lang, 'home.events.all')} <Icon name="arrow" /></a>
       </div>
       {events.length ? (
-        <ul class="events">{events.map((e) => <EventItem event={e} lang={lang} />)}</ul>
+        <ul class="events" data-reveal>{events.map((e) => <EventItem event={e} lang={lang} />)}</ul>
       ) : <p>{t(lang, 'home.events.none')}</p>}
     </div>
   </section>
 
-  <section class="section" aria-labelledby="club-title">
+  <section class="section club" aria-labelledby="club-title">
     <div class="wrap split">
-      <div class="split__text">
+      <div class="split__text" data-reveal>
         <span class="eyebrow">{lang === 'en' ? 'Amenities' : 'Amenidades'}</span>
         <h2 id="club-title">{t(lang, 'home.club')}</h2>
         <span class="rule" data-draw role="presentation"></span>
         <p>{t(lang, 'home.club.text')}</p>
         <div><a class="btn btn--crimson" href={localize('/services/the-moors-club-center/', lang)}>{t(lang, 'home.club.cta')}</a></div>
       </div>
-      {settings.hero.image
-        ? <div class="frame"><img src={settings.hero.image} alt={hero.alt[lang]} loading="lazy" /></div>
-        : <div class="frame frame--placeholder" role="img" aria-label={hero.alt[lang]}></div>}
+      <div class="frame frame--parallax">
+        <img src={withBase('/images/club-960.webp')} srcset={`${withBase('/images/club-960.webp')} 960w, ${withBase('/images/club-1600.webp')} 1600w`} sizes="(max-width: 860px) 100vw, 50vw" alt={lang === 'en' ? 'The clubhouse and pool, framed by palms' : 'La casa club y la piscina, rodeadas de palmas'} loading="lazy" />
+      </div>
     </div>
   </section>
 
   <section class="band" aria-label={t(lang, 'office')}>
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <div class="band__item">
         <Icon name="clock" />
         <h3>{t(lang, 'office.hours')}</h3>

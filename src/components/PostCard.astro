@@ -1,5 +1,6 @@
 ---
 import { categoryLabel } from '../data/site';
+import { sections } from '../data/sections';
 import { formatDate, localize, type Lang } from '../i18n/ui';
 import type { Post } from '../lib/content';
 
@@ -7,11 +8,20 @@ interface Props { post: Post; lang: Lang; headingLevel?: 2 | 3 }
 const { post, lang, headingLevel = 2 } = Astro.props;
 const H = `h${headingLevel}` as 'h2' | 'h3';
 const cat = post.categories[0];
+// Posts without their own photo borrow the photo of the section their category belongs to.
+const catSection: Record<string, string> = {
+  'president-corner': 'news', 'from-the-manager': 'rules', hotwire: 'residents',
+  security: 'security', associations: 'about', community: 'events',
+};
+const fallback = sections[catSection[cat] ?? 'news'];
 ---
 <article class="card">
   {post.image
     ? <div class="card__media"><img src={post.image} alt="" loading="lazy" /></div>
-    : <div class="card__media card__media--plain" aria-hidden="true"><span>{cat ? categoryLabel(cat)[lang] : 'The Moors'}</span></div>}
+    : <div class="card__media card__media--plain" aria-hidden="true">
+        <img src={`${fallback.image}-960.webp`} alt="" loading="lazy" />
+        <span>{cat ? categoryLabel(cat)[lang] : 'The Moors'}</span>
+      </div>}
   <div class="card__body">
     <div class="card__meta">
       {cat && <span class="card__cat">{categoryLabel(cat)[lang]}</span>}

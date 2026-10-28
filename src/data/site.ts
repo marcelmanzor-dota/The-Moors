@@ -45,7 +45,10 @@ export const defaultSettings: Settings = {
   security: { name: 'South Florida Security Group', phone: '305-723-1800' },
   policeNonEmergency: '305-476-5423',
   clubCenterEmail: 'recstaff@themoors.com',
+  // Stand-ins generated with Higgsfield (docs/HIGGSFIELD-PLAN.md) until the association's own photos are imported.
   hero: {
+    image: withBase('/images/hero-1600.webp'),
+    video: withBase('/media/hero-loop.mp4'),
     alt: {
       en: 'The Moors Club Center grounds',
       es: 'Áreas del Club Center de The Moors',
