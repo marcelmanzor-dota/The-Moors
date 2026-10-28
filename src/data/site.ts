@@ -1,4 +1,4 @@
-import type { L10n } from '../i18n/ui';
+import { withBase, type L10n } from '../i18n/ui';
 
 /** Site-wide settings. In Sanity these live in the "Site settings" document; these are the defaults. */
 export interface Settings {
@@ -25,7 +25,7 @@ export interface Settings {
 export const defaultSettings: Settings = {
   name: 'The Moors Master Maintenance Association',
   // Stand-in mark until the original logo file is imported; see docs/CONTENT-IMPORT.md.
-  logo: { png: '/brand/logo-gilded.png', webp: '/brand/logo-gilded.webp', webp1x: '/brand/logo-gilded@1x.webp', width: 571, height: 234 },
+  logo: { png: withBase('/brand/logo-gilded.png'), webp: withBase('/brand/logo-gilded.webp'), webp1x: withBase('/brand/logo-gilded@1x.webp'), width: 571, height: 234 },
   // TODO(import): copy the exact URL behind the current Payments button.
   paymentsUrl: 'https://www.themoors.com/',
   // TODO(import): copy the channel URL behind the current YouTube icon.

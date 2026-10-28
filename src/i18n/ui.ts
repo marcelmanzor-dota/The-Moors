@@ -89,11 +89,27 @@ export function t(lang: Lang, key: UIKey): string {
   return ui[key][lang];
 }
 
+/** The site's base path without a trailing slash: "" on themoors.com, "/The-Moors" on a GitHub Pages preview. */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/** Prefix a root-relative path (a page, image or file) with the site's base path. */
+export function withBase(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//')) return path;
+  if (BASE && (path === BASE || path.startsWith(`${BASE}/`))) return path;
+  return `${BASE}${path}`;
+}
+
+/** Rewrite root-relative href and src attributes in rendered HTML to include the base path. */
+export function withBaseHtml(html: string): string {
+  if (!BASE) return html;
+  return html.replace(/\b(href|src)="(\/[^/"][^"]*|\/)"/g, (_, attr, p) => `${attr}="${withBase(p)}"`);
+}
+
 /** Prefix an internal path for the given language. Paths always start and end with "/". */
 export function localize(path: string, lang: Lang): string {
   if (/^(https?:|mailto:|tel:|#)/.test(path)) return path;
   const clean = path.startsWith('/') ? path : `/${path}`;
-  return lang === 'es' ? `/es${clean}` : clean;
+  return withBase(lang === 'es' ? `/es${clean}` : clean);
 }
 
 /** Strip the language prefix from a pathname. */

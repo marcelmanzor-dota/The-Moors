@@ -9,7 +9,7 @@ import matter from 'gray-matter';
 import { marked } from 'marked';
 import { createClient, type SanityClient } from '@sanity/client';
 import { toHTML } from '@portabletext/to-html';
-import type { Lang, L10n } from '../i18n/ui';
+import { withBase, withBaseHtml, type Lang, type L10n } from '../i18n/ui';
 import { defaultSettings, type Settings } from '../data/site';
 
 export interface Localized {
@@ -65,7 +65,7 @@ export interface Doc {
 // ---------------------------------------------------------------- helpers
 
 function md(src: string): string {
-  return marked.parse(src.trim(), { async: false }) as string;
+  return withBaseHtml(marked.parse(src.trim(), { async: false }) as string);
 }
 
 /** Split a Markdown body into its English and Spanish halves, marked with <!-- en --> and <!-- es -->. */
@@ -140,7 +140,7 @@ function localPosts(): Post[] {
       categories: data.categories ?? [],
       title: l10n(data.title),
       excerpt: l10n(data.excerpt),
-      image: data.image,
+      image: data.image ? withBase(data.image) : undefined,
       body: localizeHtml(md(b.en), b.es ? md(b.es) : ''),
     };
   });
@@ -171,7 +171,7 @@ function localDocs(): Doc[] {
       id: file.split('/').pop()!.replace(/\.md$/, ''),
       title: l10n(data.title),
       description: l10n(data.description),
-      url: data.url,
+      url: withBase(data.url),
       category: data.category ?? 'general',
       updated: asDate(data.updated),
     };
@@ -226,7 +226,7 @@ const ptComponents = {
 
 function pt(blocks: unknown): string {
   if (!Array.isArray(blocks) || blocks.length === 0) return '';
-  return toHTML(blocks as never, { components: ptComponents as never });
+  return withBaseHtml(toHTML(blocks as never, { components: ptComponents as never }));
 }
 
 function ptLocalized(body: { en?: unknown; es?: unknown } | undefined): Localized {

@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
 import { getSettings } from '../lib/content';
-import { localize, type Lang } from '../i18n/ui';
+import { localize, withBase, type Lang } from '../i18n/ui';
 
 interface Props {
   lang: Lang;
@@ -24,7 +24,7 @@ const canonical = new URL(localize(path, lang), site).href;
 const desc = description || (lang === 'en'
   ? 'The Moors Master Maintenance Association: resident services, rules, security, events and news for The Moors community.'
   : 'The Moors Master Maintenance Association: servicios para residentes, reglas, seguridad, eventos y noticias de la comunidad The Moors.');
-const ogImage = new URL(image ?? '/brand/og.png', site).href;
+const ogImage = new URL(withBase(image ?? '/brand/og.png'), site).href;
 ---
 <!doctype html>
 <html lang={lang}>
@@ -38,7 +38,7 @@ const ogImage = new URL(image ?? '/brand/og.png', site).href;
     <link rel="alternate" hreflang="es" href={new URL(localize(path, 'es'), site).href} />
     <link rel="alternate" hreflang="x-default" href={new URL(localize(path, 'en'), site).href} />
     <link rel="alternate" type="application/rss+xml" title="The Moors" href={localize('/feed.xml', lang)} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <meta name="theme-color" content="#a31f37" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="The Moors" />

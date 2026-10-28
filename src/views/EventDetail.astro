@@ -1,7 +1,7 @@
 ---
 import Interior from '../layouts/Interior.astro';
 import Icon from '../components/Icon.astro';
-import { formatDate, localize, t, type Lang } from '../i18n/ui';
+import { formatDate, localize, t, withBase, type Lang } from '../i18n/ui';
 import { calendarDates } from '../lib/ics';
 import type { Event } from '../lib/content';
 
@@ -30,7 +30,7 @@ const gcal = e.start
     {gcal && (
       <p style="display:flex;flex-wrap:wrap;gap:10px">
         <a class="btn btn--pearl btn--sm" href={gcal} rel="noopener" target="_blank"><Icon name="calendar" />Google Calendar</a>
-        <a class="btn btn--pearl btn--sm" href={`/events/${e.slug}.ics`}><Icon name="calendar" />{t(lang, 'events.add')} (.ics)</a>
+        <a class="btn btn--pearl btn--sm" href={withBase(`/events/${e.slug}.ics`)}><Icon name="calendar" />{t(lang, 'events.add')} (.ics)</a>
       </p>
     )}
   </div>

@@ -1,6 +1,6 @@
 ---
 import { mainNav } from '../data/nav';
-import { t, localize, type Lang } from '../i18n/ui';
+import { t, localize, withBase, type Lang } from '../i18n/ui';
 import type { Settings } from '../data/site';
 
 interface Props { lang: Lang; settings: Settings }
@@ -48,7 +48,7 @@ const quick = [
     </div>
     <div class="footer__base">
       <span>© {year} {t(lang, 'footer.rights')}</span>
-      <a href="/studio/">{t(lang, 'footer.editors')}</a>
+      <a href={withBase('/studio/')}>{t(lang, 'footer.editors')}</a>
     </div>
   </div>
 </footer>
